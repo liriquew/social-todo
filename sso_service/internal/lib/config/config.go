@@ -1,4 +1,4 @@
-package conifg
+package config
 
 import (
 	"os"
@@ -7,24 +7,26 @@ import (
 )
 
 type Config struct {
-	Port string `yaml:"port" env-default:"4040"`
+	Port        int    `yaml:"port" env-default:"4041"`
+	StoragePath string `yaml:"storage_path" env-required:"true"`
+	JWTSecret   string `yaml:"jwt_secret" env-required:"true"`
 }
 
-func MustLoad() *Config {
+func MustLoad() Config {
 	path := fetchConfigPath()
 
 	if path == "" {
 		path = "./config/config.yaml"
 	}
 
-	return MustLoadByPath(path)
+	return MustLoadPath(path)
 }
 
 func fetchConfigPath() string {
 	return os.Getenv("CONF_PATH")
 }
 
-func MustLoadByPath(path string) *Config {
+func MustLoadPath(path string) Config {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		panic("config: file not exist")
 	}
@@ -35,5 +37,5 @@ func MustLoadByPath(path string) *Config {
 		panic("error while reading config" + err.Error())
 	}
 
-	return &cfg
+	return cfg
 }

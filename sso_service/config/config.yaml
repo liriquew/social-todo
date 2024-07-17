@@ -1,0 +1,4 @@
+port: 4041
+storage_path: "./storage/sso.db"
+jwt_secret: "secret"
+timeout: 10h

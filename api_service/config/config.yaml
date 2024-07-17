@@ -1,1 +1,5 @@
 port: 4040
+grpc_client:
+  auth_port: localhost:4041
+  timeout: 1s
+  retries: 1

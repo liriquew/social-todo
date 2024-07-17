@@ -20,7 +20,7 @@ type Client struct {
 	log *slog.Logger
 }
 
-func New(ctx context.Context, log *slog.Logger, addr string, timeout time.Duration, retriesCount int) (*Client, error) {
+func New(log *slog.Logger, addr string, timeout time.Duration, retriesCount int) (*Client, error) {
 	const op = "auth_grpc.New"
 
 	retryOpts := []grpcretry.CallOption{
@@ -56,4 +56,30 @@ func InterceptorLogger(log *slog.Logger) grpclog.Logger {
 	})
 }
 
-// TODO: реализовать методы для клиента
+func (c *Client) Login(ctx context.Context, username, password string) (string, error) {
+	const op = "auth_grpc.Login"
+
+	resp, err := c.api.Login(ctx, &sso.LoginRequest{
+		Username: username,
+		Password: password,
+	})
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	return resp.Token, nil
+}
+
+func (c *Client) Register(ctx context.Context, username, password string) (int64, error) {
+	const op = "auth_grpc.Login"
+
+	resp, err := c.api.Register(ctx, &sso.RegisterRequest{
+		Username: username,
+		Password: password,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return resp.Uid, nil
+}

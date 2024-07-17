@@ -2,7 +2,7 @@ package main
 
 import (
 	"api_service/internal/app"
-	"api_service/internal/lib/conifg"
+	"api_service/internal/lib/config"
 	"api_service/internal/lib/logger"
 	"api_service/internal/lib/logger/sl"
 	"context"
@@ -16,13 +16,13 @@ import (
 )
 
 func main() {
-	cfg := conifg.MustLoad()
+	cfg := config.MustLoad()
 
 	log := logger.SetupPrettySlog()
 
 	log.Info("LOL PON", slog.Any("cfg", cfg))
 
-	r := app.New(log)
+	r := app.New(log, *cfg)
 
 	srv := &http.Server{
 		Addr:    ":" + cfg.Port,
