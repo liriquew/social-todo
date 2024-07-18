@@ -12,5 +12,7 @@ func New(auth auth.AuthAPI) *gin.Engine {
 	r.POST("/signin", auth.Login)
 	r.POST("/signup", auth.Register)
 
+	r.GET("/note", auth.AuthRequired)
+
 	return r
 }

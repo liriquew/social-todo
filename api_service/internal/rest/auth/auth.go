@@ -14,6 +14,7 @@ import (
 type AuthAPI interface {
 	Login(c *gin.Context)
 	Register(c *gin.Context)
+	AuthRequired(c *gin.Context)
 }
 
 type Auth struct {
@@ -65,9 +66,24 @@ func (a *Auth) Register(c *gin.Context) {
 		return
 	}
 
-	if uid != 0 {
-		c.String(http.StatusOK, "register - ok")
-	} else {
+	if uid == 0 {
 		c.String(http.StatusOK, fmt.Sprintf("error: %s", err))
 	}
+
+	c.Status(http.StatusOK)
+}
+
+func (a *Auth) AuthRequired(c *gin.Context) {
+	a.log.Info("middleware")
+
+	token := c.GetHeader("Authorization")
+	if token == "" {
+		c.String(http.StatusUnauthorized, "jwt token required")
+	}
+
+	a.authClient.Authorize(c, token)
+
+	// TODO: обратиться в сервис заметок
+
+	// TODO: обработать то, что вернул сервис заметок
 }

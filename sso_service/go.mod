@@ -9,7 +9,7 @@ require (
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/liriquew/todoprotos v0.0.0-20240717184205-2d741c341874
+	github.com/liriquew/todoprotos v0.0.0-20240718133609-88e78e8ec446
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.25.0
