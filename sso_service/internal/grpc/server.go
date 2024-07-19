@@ -63,6 +63,7 @@ func (g *serverAPI) Register(ctx context.Context, req *sso.RegisterRequest) (*ss
 
 func (g *serverAPI) Authorize(ctx context.Context, req *sso.AuthorizeRequest) (*sso.AuthorizeResponse, error) {
 	token := req.Token
+
 	if token == "" {
 		return nil, status.Error(codes.InvalidArgument, "jwt token is empty")
 	}

@@ -1,10 +1,6 @@
 package main
 
 import (
-	"api_service/internal/app"
-	"api_service/pkg/config"
-	"api_service/pkg/logger"
-	"api_service/pkg/logger/sl"
 	"context"
 	"errors"
 	"log/slog"
@@ -13,6 +9,12 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/liriquew/social-todo/api_service/pkg/config"
+	"github.com/liriquew/social-todo/api_service/pkg/logger"
+	"github.com/liriquew/social-todo/api_service/pkg/logger/sl"
+
+	"github.com/liriquew/social-todo/api_service/internal/app"
 )
 
 func main() {
@@ -20,7 +22,7 @@ func main() {
 
 	log := logger.SetupPrettySlog()
 
-	log.Info("LOL PON", slog.Any("cfg", cfg))
+	log.Info("CONFIG", slog.Any("cfg", cfg))
 
 	r := app.New(log, *cfg)
 

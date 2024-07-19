@@ -1,4 +1,4 @@
-package sqlite
+package postgres
 
 import (
 	"context"
@@ -9,20 +9,28 @@ import (
 	"github.com/liriquew/social-todo/sso_service/internal/models"
 	"github.com/liriquew/social-todo/sso_service/internal/storage"
 
-	"github.com/mattn/go-sqlite3"
+	"github.com/lib/pq"
 )
 
 type Storage struct {
 	db *sql.DB
 }
 
-func New(storagePath string) (*Storage, error) {
-	const op = "storage.sqlite.New"
+func New() (*Storage, error) {
+	const op = "storage.postgres.New"
 
-	db, err := sql.Open("sqlite3", storagePath)
+	connStr := "postgres://username:passwd@localhost:5432/username?sslmode=disable"
+
+	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+
+	if err = db.Ping(); err != nil {
+		panic(op + ":" + err.Error())
+	}
+
+	fmt.Println("DB CONNECT OK")
 
 	return &Storage{db: db}, nil
 }
@@ -32,35 +40,26 @@ func (s *Storage) Stop() error {
 }
 
 func (s *Storage) SaveUser(ctx context.Context, username string, passHash []byte) (int64, error) {
-	const op = "storage.sqlite.SaveUser"
+	const op = "storage.postgres.SaveUser"
 
-	stmt, err := s.db.Prepare("INSERT INTO users(username, pass_hash) VALUES(?, ?)")
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
-	}
+	var userID int64
+	query := "INSERT INTO users (username, pass_hash) VALUES ($1, $2) RETURNING id"
 
-	res, err := stmt.ExecContext(ctx, username, passHash)
+	err := s.db.QueryRowContext(ctx, query, username, passHash).Scan(&userID)
 	if err != nil {
-		var sqliteErr sqlite3.Error
-		if errors.As(err, &sqliteErr) && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
 			return 0, fmt.Errorf("%s: %w", op, storage.ErrUserExist)
 		}
-
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
-	id, err := res.LastInsertId()
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return id, nil
+	return userID, nil
 }
 
 func (s *Storage) User(ctx context.Context, username string) (models.User, error) {
-	const op = "storage.sqlite.User"
+	const op = "storage.postgres.User"
 
-	stmt, err := s.db.Prepare("SELECT id, username, pass_hash FROM users WHERE username = ?")
+	stmt, err := s.db.Prepare("SELECT id, username, pass_hash FROM users WHERE username = $1")
 	if err != nil {
 		return models.User{}, fmt.Errorf("%s: %w", op, err)
 	}

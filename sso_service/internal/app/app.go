@@ -6,7 +6,7 @@ import (
 	"github.com/liriquew/social-todo/sso_service/internal/app/grpcapp"
 	"github.com/liriquew/social-todo/sso_service/internal/lib/config"
 	"github.com/liriquew/social-todo/sso_service/internal/sevices/auth"
-	"github.com/liriquew/social-todo/sso_service/internal/storage/sqlite"
+	"github.com/liriquew/social-todo/sso_service/internal/storage/postgres"
 )
 
 type App struct {
@@ -14,7 +14,7 @@ type App struct {
 }
 
 func New(log *slog.Logger, cfg config.Config) *App {
-	storage, err := sqlite.New(cfg.StoragePath)
+	storage, err := postgres.New()
 	if err != nil {
 		panic(err)
 	}

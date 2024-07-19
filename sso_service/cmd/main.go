@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/liriquew/social-todo/api_service/internal/lib/logger"
+	"github.com/liriquew/social-todo/api_service/pkg/logger"
 	"github.com/liriquew/social-todo/sso_service/internal/app"
 	"github.com/liriquew/social-todo/sso_service/internal/lib/config"
 	"github.com/liriquew/social-todo/sso_service/internal/lib/jwt"

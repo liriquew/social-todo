@@ -7,9 +7,8 @@ import (
 )
 
 type Config struct {
-	Port        int    `yaml:"port" env-default:"4041"`
-	StoragePath string `yaml:"storage_path" env-required:"true"`
-	JWTSecret   string `yaml:"jwt_secret" env-required:"true"`
+	Port      int    `yaml:"port" env-default:"4041"`
+	JWTSecret string `yaml:"jwt_secret" env-required:"true"`
 }
 
 func MustLoad() Config {

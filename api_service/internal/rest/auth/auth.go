@@ -1,12 +1,13 @@
 package auth
 
 import (
-	"api_service/internal/models"
 	"fmt"
 	"log/slog"
 	"net/http"
 
-	auth_grpc "api_service/internal/clients/authgrpc"
+	"github.com/liriquew/social-todo/api_service/internal/models"
+
+	auth_grpc "github.com/liriquew/social-todo/api_service/internal/clients/authgrpc"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,6 +15,7 @@ import (
 type AuthAPI interface {
 	Login(c *gin.Context)
 	Register(c *gin.Context)
+	AuthRequired(c *gin.Context)
 }
 
 type Auth struct {
@@ -70,4 +72,19 @@ func (a *Auth) Register(c *gin.Context) {
 	} else {
 		c.String(http.StatusOK, fmt.Sprintf("error: %s", err))
 	}
+}
+
+func (a *Auth) AuthRequired(c *gin.Context) {
+	a.log.Info("middleware")
+
+	token := c.GetHeader("Authorization")
+	if token == "" {
+		c.String(http.StatusUnauthorized, "jwt token required")
+	}
+
+	a.authClient.Authorize(c, token)
+
+	// TODO: обратиться в сервис заметок
+
+	// TODO: обработать то, что вернул сервис заметок
 }
