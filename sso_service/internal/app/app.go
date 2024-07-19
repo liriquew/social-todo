@@ -2,10 +2,11 @@ package app
 
 import (
 	"log/slog"
-	"sso_service/internal/app/grpcapp"
-	"sso_service/internal/lib/config"
-	"sso_service/internal/sevices/auth"
-	"sso_service/internal/storage/sqlite"
+
+	"github.com/liriquew/social-todo/sso_service/internal/app/grpcapp"
+	"github.com/liriquew/social-todo/sso_service/internal/lib/config"
+	"github.com/liriquew/social-todo/sso_service/internal/sevices/auth"
+	"github.com/liriquew/social-todo/sso_service/internal/storage/sqlite"
 )
 
 type App struct {

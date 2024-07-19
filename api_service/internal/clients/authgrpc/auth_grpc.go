@@ -83,16 +83,3 @@ func (c *Client) Register(ctx context.Context, username, password string) (int64
 
 	return resp.Uid, nil
 }
-
-func (c *Client) Authorize(ctx context.Context, token string) (int64, error) {
-	const op = "auth_grpc.Authorize"
-
-	resp, err := c.api.Authorize(ctx, &sso.AuthorizeRequest{
-		Token: token,
-	})
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return resp.Uid, nil
-}

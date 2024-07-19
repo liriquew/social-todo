@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net"
 
-	authgrpc "sso_service/internal/grpc/auth"
+	authgrpc "github.com/liriquew/social-todo/sso_service/internal/grpc/auth"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"

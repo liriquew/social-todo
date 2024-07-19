@@ -1,4 +1,4 @@
-module api_service
+module github.com/liriquew/social-todo/api_service
 
 go 1.22.5
 
@@ -6,7 +6,7 @@ require (
 	github.com/fatih/color v1.17.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/liriquew/todoprotos v0.0.0-20240718133609-88e78e8ec446
+	github.com/liriquew/todoprotos v0.0.0-20240717184205-2d741c341874
 )
 
 require (

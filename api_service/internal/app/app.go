@@ -3,8 +3,8 @@ package app
 import (
 	apiapp "api_service/internal/app/app"
 	auth_grpc "api_service/internal/clients/authgrpc"
-	"api_service/internal/lib/config"
 	"api_service/internal/rest/auth"
+	"api_service/pkg/config"
 	"log/slog"
 
 	"github.com/gin-gonic/gin"

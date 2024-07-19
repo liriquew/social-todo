@@ -16,6 +16,7 @@ import (
 type Auth interface {
 	Login(context.Context, string, string) (string, error)
 	Register(context.Context, string, string) (int64, error)
+	Authorize(context.Context, string) (int64, error)
 }
 
 type serverAPI struct {
@@ -58,6 +59,20 @@ func (g *serverAPI) Register(ctx context.Context, req *sso.RegisterRequest) (*ss
 	}
 
 	return &sso.RegisterResponse{Uid: uid}, nil
+}
+
+func (g *serverAPI) Authorize(ctx context.Context, req *sso.AuthorizeRequest) (*sso.AuthorizeResponse, error) {
+	token := req.Token
+	if token == "" {
+		return nil, status.Error(codes.InvalidArgument, "jwt token is empty")
+	}
+
+	uid, err := g.auth.Authorize(ctx, token)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	return &sso.AuthorizeResponse{Uid: uid}, nil
 }
 
 func validateRequest(username, password string) error {

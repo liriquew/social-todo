@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"sso_service/internal/lib/jwt"
-	"sso_service/internal/lib/logger/sl"
-	"sso_service/internal/models"
-	"sso_service/internal/storage"
-	"strings"
+
+	"github.com/liriquew/social-todo/sso_service/internal/lib/jwt"
+	"github.com/liriquew/social-todo/sso_service/internal/models"
+	"github.com/liriquew/social-todo/sso_service/internal/storage"
+
+	"github.com/liriquew/social-todo/api_service/internal/lib/logger/sl"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -91,25 +92,4 @@ func (a *Auth) Register(ctx context.Context, username, password string) (int64, 
 	}
 
 	return uid, err
-}
-
-func (a *Auth) Authorize(ctx context.Context, tokenString string) (int64, error) {
-	const op = "auth.Register"
-
-	log := a.log.With(slog.String("op", op), slog.String("tokenString", tokenString))
-	log.Info("attempting to authorize user")
-
-	token := strings.TrimPrefix(tokenString, "Bearer ")
-
-	log.Info("Claimed token:", slog.String("TOKEN", token))
-	uid, err := jwt.Validate(token)
-
-	if err != nil {
-		a.log.Warn("err while validate token", sl.Err(err))
-		return 0, err
-	}
-
-	fmt.Println("OK")
-
-	return uid, nil
 }

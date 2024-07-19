@@ -2,9 +2,9 @@ package main
 
 import (
 	"api_service/internal/app"
-	"api_service/internal/lib/config"
-	"api_service/internal/lib/logger"
-	"api_service/internal/lib/logger/sl"
+	"api_service/pkg/config"
+	"api_service/pkg/logger"
+	"api_service/pkg/logger/sl"
 	"context"
 	"errors"
 	"log/slog"
@@ -45,7 +45,7 @@ func main() {
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Warn("Server forced to shutdown:", err)
+		log.Warn("Server forced to shutdown:", sl.Err(err))
 	}
 
 	log.Info("Server exiting")

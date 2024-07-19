@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"sso_service/internal/lib/config"
+	"github.com/liriquew/social-todo/sso_service/internal/lib/config"
 
 	ssov1 "github.com/liriquew/todoprotos/gen/go/sso"
 	"google.golang.org/grpc"

@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"sso_service/tests/suite"
+	"github.com/liriquew/social-todo/sso_service/tests/suite"
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/golang-jwt/jwt/v5"

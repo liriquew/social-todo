@@ -4,11 +4,12 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"sso_service/internal/app"
-	"sso_service/internal/lib/config"
-	"sso_service/internal/lib/jwt"
-	"sso_service/internal/lib/logger"
 	"syscall"
+
+	"github.com/liriquew/social-todo/api_service/internal/lib/logger"
+	"github.com/liriquew/social-todo/sso_service/internal/app"
+	"github.com/liriquew/social-todo/sso_service/internal/lib/config"
+	"github.com/liriquew/social-todo/sso_service/internal/lib/jwt"
 )
 
 func main() {

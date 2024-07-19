@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 
-	"sso_service/internal/models"
-	"sso_service/internal/storage"
+	"github.com/liriquew/social-todo/sso_service/internal/models"
+	"github.com/liriquew/social-todo/sso_service/internal/storage"
 
 	"github.com/mattn/go-sqlite3"
 )
