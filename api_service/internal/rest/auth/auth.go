@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -36,13 +37,22 @@ func (a *Auth) Login(c *gin.Context) {
 	var user models.User
 
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", err))
 		return
 	}
 
 	token, err := a.authClient.Login(c, user.Username, user.Password)
 	if err != nil {
-		c.String(http.StatusInternalServerError, fmt.Sprintf("error: %s", err))
+		if errors.Is(err, auth_grpc.ErrNotFound) {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		if errors.Is(err, auth_grpc.ErrInvalidArgument) {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 
@@ -57,34 +67,24 @@ func (a *Auth) Register(c *gin.Context) {
 	var user models.User
 
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", err))
 		return
 	}
 
 	uid, err := a.authClient.Register(c, user.Username, user.Password)
 	if err != nil {
-		c.String(http.StatusInternalServerError, fmt.Sprintf("error: %s", err))
+		if errors.Is(err, auth_grpc.ErrAlreadyExists) {
+			c.Status(http.StatusConflict)
+			return
+		}
+		if errors.Is(err, auth_grpc.ErrInvalidArgument) {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	if uid != 0 {
-		c.String(http.StatusOK, "register - ok")
-	} else {
-		c.String(http.StatusOK, fmt.Sprintf("error: %s", err))
-	}
-}
-
-func (a *Auth) AuthRequired(c *gin.Context) {
-	a.log.Info("middleware")
-
-	token := c.GetHeader("Authorization")
-	if token == "" {
-		c.String(http.StatusUnauthorized, "jwt token required")
-	}
-
-	a.authClient.Authorize(c, token)
-
-	// TODO: обратиться в сервис заметок
-
-	// TODO: обработать то, что вернул сервис заметок
+	c.String(http.StatusOK, fmt.Sprintf("uid: %d", uid))
 }

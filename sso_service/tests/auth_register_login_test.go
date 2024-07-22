@@ -47,7 +47,7 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 	claims, ok := tokenParsed.Claims.(jwt.MapClaims)
 	require.True(t, ok)
 
-	assert.Equal(t, username, claims["username"].(string))
+	assert.Equal(t, respReg.Uid, int64(claims["uid"].(float64)))
 }
 
 func TestRegisterLogin_DuplicatedRegistration(t *testing.T) {
@@ -109,7 +109,6 @@ func TestRegister_FailCases(t *testing.T) {
 			})
 			require.Error(t, err)
 			require.Contains(t, err.Error(), tt.expectedErr)
-
 		})
 	}
 }

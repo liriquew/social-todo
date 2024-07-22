@@ -1,3 +1,9 @@
 port: 4041
 jwt_secret: "secret"
 timeout: 10h
+
+postgres:
+  username: psqluser
+  password: psqlpasswd
+  port: 5432
+  db_name: social_notes

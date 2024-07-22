@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/liriquew/social-todo/sso_service/internal/lib/config"
 	"github.com/liriquew/social-todo/sso_service/internal/models"
 	"github.com/liriquew/social-todo/sso_service/internal/storage"
 
@@ -16,10 +17,15 @@ type Storage struct {
 	db *sql.DB
 }
 
-func New() (*Storage, error) {
+func New(cfg config.PostgresConfig) (*Storage, error) {
 	const op = "storage.postgres.New"
 
-	connStr := "postgres://username:passwd@localhost:5432/username?sslmode=disable"
+	connStr := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", // дада ssl всегда выкл
+		cfg.Username,
+		cfg.Password,
+		cfg.Port,
+		cfg.DBName,
+	)
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
@@ -35,7 +41,7 @@ func New() (*Storage, error) {
 	return &Storage{db: db}, nil
 }
 
-func (s *Storage) Stop() error {
+func (s *Storage) Close() error {
 	return s.db.Close()
 }
 

@@ -1,0 +1,15 @@
+version: "3"
+
+tasks:
+  migrations_up:
+    aliases:
+      - notes_up
+    desc: "Generate tables (notes) in db with goose from ./internal/storage/migrations.sql"
+    cmds:
+      - goose -dir ./internal/storage/migrations postgres "host=localhost user=psqluser database=social_notes password=psqlpasswd sslmode=disable" up
+  migrations_down:
+    aliases:
+      - notes_down
+    desc: "Drop tables (notes)"
+    cmds:
+      - goose -dir ./internal/storage/migrations postgres "host=localhost user=psqluser database=social_notes password=psqlpasswd sslmode=disable" down

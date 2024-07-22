@@ -5,8 +5,10 @@ import (
 
 	apiapp "github.com/liriquew/social-todo/api_service/internal/app/app"
 	auth_grpc "github.com/liriquew/social-todo/api_service/internal/clients/authgrpc"
+	notes_grpc "github.com/liriquew/social-todo/api_service/internal/clients/notesgrpc"
+	"github.com/liriquew/social-todo/api_service/internal/lib/config"
 	"github.com/liriquew/social-todo/api_service/internal/rest/auth"
-	"github.com/liriquew/social-todo/api_service/pkg/config"
+	"github.com/liriquew/social-todo/api_service/internal/rest/notes"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,13 +18,16 @@ type App struct {
 }
 
 func New(log *slog.Logger, cfg config.Config) *App {
-	authClient, err := auth_grpc.New(log, cfg.ClientGRPC.AuthPort, cfg.ClientGRPC.Timeout, cfg.ClientGRPC.Retries)
+	authClient, err := auth_grpc.New(log, cfg.AuthConfig)
 	if err != nil {
 		panic(err)
 	}
+	notesClient, err := notes_grpc.New(log, cfg.NoteConfig)
 
 	auth := auth.New(log, authClient)
-	r := apiapp.New(auth)
+	notes := notes.New(log, notesClient)
+
+	r := apiapp.New(auth, notes)
 
 	return &App{r}
 }

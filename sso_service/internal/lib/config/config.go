@@ -7,8 +7,16 @@ import (
 )
 
 type Config struct {
-	Port      int    `yaml:"port" env-default:"4041"`
-	JWTSecret string `yaml:"jwt_secret" env-required:"true"`
+	Port      int            `yaml:"port" env-default:"4041"`
+	JWTSecret string         `yaml:"jwt_secret" env-required:"true"`
+	Postgres  PostgresConfig `yaml:"postgres" env-required:"true"`
+}
+
+type PostgresConfig struct {
+	Username string `yaml:"username" env-required:"true"`
+	Password string `yaml:"password" env-required:"true"`
+	Port     string `yaml:"port" env-required:"true"`
+	DBName   string `yaml:"db_name" env-required:"true"`
 }
 
 func MustLoad() Config {

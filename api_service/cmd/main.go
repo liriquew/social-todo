@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/liriquew/social-todo/api_service/pkg/config"
+	"github.com/liriquew/social-todo/api_service/internal/lib/config"
 	"github.com/liriquew/social-todo/api_service/pkg/logger"
 	"github.com/liriquew/social-todo/api_service/pkg/logger/sl"
 

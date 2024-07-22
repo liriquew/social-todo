@@ -1,0 +1,15 @@
+version: "3"
+
+tasks:
+  migrations_up:
+    aliases:
+      - users_up
+    desc: "Generate tables (users) in db with goose from ./internal/storage/migrations.sql"
+    cmds:
+      - goose -dir ./internal/storage/migrations postgres "host=localhost user=psqluser database=social_notes password=psqlpasswd sslmode=disable" up
+  migrations_down:
+    aliases:
+      - users_down
+    desc: "Drop sso tables (users)"
+    cmds:
+      - goose -dir ./internal/storage/migrations postgres "host=localhost user=psqluser database=social_notes password=psqlpasswd sslmode=disable" down

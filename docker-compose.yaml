@@ -1,11 +1,11 @@
 services:
   postgres:
-    container_name: postgres_container
+    container_name: social_notes_postgres
     image: postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-username}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-passwd}
-      POSTGRES_DB: ${POSTGRES_DB:-notes}
+      POSTGRES_USER: "psqluser"
+      POSTGRES_PASSWORD: "psqlpasswd"
+      POSTGRES_DB: social_notes
       PGDATA: /data/postgres
     volumes:
        - postgres:/data/postgres
@@ -14,4 +14,4 @@ services:
     restart: unless-stopped
 
 volumes:
-    postgres:
+  postgres:

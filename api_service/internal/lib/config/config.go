@@ -8,20 +8,21 @@ import (
 )
 
 type Config struct {
-	Port       string `yaml:"port" env-default:"4040"`
-	ClientGRPC GRPC   `yaml:"grpc_client" env-required:"true"`
+	Port       string        `yaml:"port" env-default:"4040"`
+	AuthConfig ServiceConfig `yaml:"auth_client" env-required:"true"`
+	NoteConfig ServiceConfig `yaml:"note_client" env-required:"true"`
 }
 
-type GRPC struct {
-	AuthPort string        `yaml:"auth_port" env-default:"4041"`
-	Timeout  time.Duration `yaml:"timeout" env-defauilt:"1s"`
-	Retries  int           `yaml:"retries" env-default:"10"`
+type ServiceConfig struct {
+	Port    string        `yaml:"port" env-required:"true"`
+	Timeout time.Duration `yaml:"timeout" env-defauilt:"1s"`
+	Retries int           `yaml:"retries" env-default:"10"`
 }
 
 func MustLoad() *Config {
 	path := fetchConfigPath()
 
-	if path == "" {
+	if path == "" { // lol idk
 		path = "./config/config.yaml"
 	}
 

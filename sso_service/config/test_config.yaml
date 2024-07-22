@@ -1,4 +1,9 @@
 port: 4041
-storage_path: "./storage/sso.db"
-timeout: 10h
 jwt_secret: "secret"
+timeout: 10h
+
+postgres:
+  username: psqluser
+  password: psqlpasswd
+  port: 5432
+  db_name: social_notes

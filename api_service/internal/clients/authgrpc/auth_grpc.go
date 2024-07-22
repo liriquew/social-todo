@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time"
 
+	"github.com/liriquew/social-todo/api_service/internal/lib/config"
 	"github.com/liriquew/todoprotos/gen/go/sso"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 
 	grpclog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	grpcretry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
@@ -20,20 +21,24 @@ type Client struct {
 	log *slog.Logger
 }
 
-func New(log *slog.Logger, addr string, timeout time.Duration, retriesCount int) (*Client, error) {
+var (
+	ErrMissJWTToken = fmt.Errorf("miss JWT auth token")
+)
+
+func New(log *slog.Logger, cfg config.ServiceConfig) (*Client, error) {
 	const op = "auth_grpc.New"
 
 	retryOpts := []grpcretry.CallOption{
 		grpcretry.WithCodes(codes.NotFound, codes.Aborted, codes.DeadlineExceeded),
-		grpcretry.WithMax(uint(retriesCount)),
-		grpcretry.WithPerRetryTimeout(timeout),
+		grpcretry.WithMax(uint(cfg.Retries)),
+		grpcretry.WithPerRetryTimeout(cfg.Timeout),
 	}
 
 	logOpts := []grpclog.Option{
 		grpclog.WithLogOnEvents(grpclog.PayloadReceived, grpclog.PayloadSent),
 	}
 
-	cc, err := grpc.NewClient(addr,
+	cc, err := grpc.NewClient(cfg.Port,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithChainUnaryInterceptor(
 			grpclog.UnaryClientInterceptor(InterceptorLogger(log), logOpts...),
@@ -56,6 +61,12 @@ func InterceptorLogger(log *slog.Logger) grpclog.Logger {
 	})
 }
 
+var (
+	ErrNotFound        = fmt.Errorf("user not found")
+	ErrAlreadyExists   = fmt.Errorf("user already exists")
+	ErrInvalidArgument = fmt.Errorf("invalid argument")
+)
+
 func (c *Client) Login(ctx context.Context, username, password string) (string, error) {
 	const op = "auth_grpc.Login"
 
@@ -64,6 +75,14 @@ func (c *Client) Login(ctx context.Context, username, password string) (string, 
 		Password: password,
 	})
 	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return "", ErrNotFound
+			case codes.InvalidArgument:
+				return "", ErrInvalidArgument
+			}
+		}
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -78,6 +97,14 @@ func (c *Client) Register(ctx context.Context, username, password string) (int64
 		Password: password,
 	})
 	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.AlreadyExists:
+				return 0, ErrAlreadyExists
+			case codes.InvalidArgument:
+				return 0, ErrInvalidArgument
+			}
+		}
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -91,6 +118,9 @@ func (c *Client) Authorize(ctx context.Context, token string) (int64, error) {
 		Token: token,
 	})
 	if err != nil {
+		if st, ok := status.FromError(err); ok && st.Code() == codes.InvalidArgument {
+			return 0, ErrMissJWTToken
+		}
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 

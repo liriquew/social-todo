@@ -31,9 +31,6 @@ func Validate(tokenString string) (int64, error) {
 		return []byte(Secret), nil
 	})
 
-	fmt.Println(err)
-	fmt.Println("valid token:", token.Valid)
-
 	if err != nil || !token.Valid {
 		return 0, fmt.Errorf("invalid token")
 	}
