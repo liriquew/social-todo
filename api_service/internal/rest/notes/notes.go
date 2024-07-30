@@ -18,6 +18,8 @@ type NotesAPI interface {
 	Get(c *gin.Context)
 	Update(c *gin.Context)
 	Delete(c *gin.Context)
+	ListIDs(c *gin.Context)
+	ListNotes(c *gin.Context)
 }
 
 // this is api
@@ -47,6 +49,8 @@ func (n *Notes) Create(c *gin.Context) {
 		c.String(http.StatusBadRequest, "bad json idk")
 		return
 	}
+
+	n.log.Debug("RECIVED:", slog.Any("NOTE", note))
 
 	NoteID, err := n.notesClient.Create(c, uid, note)
 	if err != nil {
@@ -165,4 +169,53 @@ func (n *Notes) Delete(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+func (n *Notes) ListIDs(c *gin.Context) {
+	uid := c.Value("uid").(int64)
+	if uid <= 0 {
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+
+	notesIDs, err := n.notesClient.ListUserIDs(c, uid)
+	if err != nil {
+		n.log.Warn("error:", sl.Err(err))
+		if errors.Is(err, notes_grpc.ErrNotFound) {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, notesIDs)
+}
+
+func (n *Notes) ListNotes(c *gin.Context) {
+	uid := c.Value("uid").(int64)
+	if uid <= 0 {
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+
+	var notesIDs []int64
+	if err := c.ShouldBindJSON(&notesIDs); err != nil {
+		n.log.Warn("bad json", sl.Err(err))
+		c.String(http.StatusBadRequest, "bad json idk")
+		return
+	}
+
+	notes, err := n.notesClient.ListUserNotes(c, uid, notesIDs)
+	if err != nil {
+		n.log.Warn("error:", sl.Err(err))
+		if errors.Is(err, notes_grpc.ErrNotFound) {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, notes)
 }

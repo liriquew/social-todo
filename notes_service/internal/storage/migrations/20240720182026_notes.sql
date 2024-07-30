@@ -16,6 +16,7 @@ CREATE TABLE notes (
     owner_id INTEGER NOT NULL,
     title TEXT NOT NULL,
     note TEXT,
+    duration BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE UNIQUE INDEX unique_title_per_owner ON notes(owner_id, title);

@@ -18,10 +18,13 @@ type ServiceNotes struct {
 }
 
 type StorageProvider interface {
-	SaveNote(context.Context, *models.Note) (int64, error)
+	SaveNote(context.Context, int64, *models.Note) (int64, error)
 	GetNote(context.Context, int64, int64) (*models.Note, error)
-	UpdateNote(context.Context, *models.Note) error
+	UpdateNote(context.Context, int64, int64, *models.Note) error
 	DeleteNote(context.Context, int64, int64) error
+
+	ListUserNotesID(context.Context, int64) ([]int64, error)
+	ListUserNotes(context.Context, int64, []int64) ([]*models.Note, error)
 }
 
 var (
@@ -36,31 +39,31 @@ func New(log *slog.Logger, storage StorageProvider) *ServiceNotes {
 	}
 }
 
-func (s *ServiceNotes) CreateNote(ctx context.Context, note *notes.Note) (*notes.NoteMeta, error) {
+func (s *ServiceNotes) CreateNote(ctx context.Context, UID int64, note *notes.Note) (int64, error) {
 	const op = "notessrvc.CreateNote"
 
-	log := s.log.With(slog.String("op", op), slog.Int64("uid", note.Uid))
+	log := s.log.With(slog.String("op", op), slog.Int64("uid", UID))
 	log.Info("attempting to Create note")
 
-	noteID, err := s.Storage.SaveNote(ctx, models.NoteFromProto(note))
+	noteID, err := s.Storage.SaveNote(ctx, UID, models.NoteFromProto(note))
 	if err != nil {
 		log.Warn("ERROR:", sl.Err(err))
 		if errors.Is(err, storage.ErrAlreadyExists) {
-			return nil, ErrAlreadyExists
+			return 0, ErrAlreadyExists
 		}
 
-		return nil, err
+		return 0, err
 	}
-	return &notes.NoteMeta{UID: note.Uid, NoteID: noteID}, nil
+	return noteID, nil
 }
 
-func (s *ServiceNotes) GetNote(ctx context.Context, noteMeta *notes.NoteMeta) (*notes.Note, error) {
+func (s *ServiceNotes) GetNote(ctx context.Context, UID, NID int64) (*notes.Note, error) {
 	const op = "notessrvc.GetNote"
 
-	log := s.log.With(slog.String("op", op), slog.Int64("uid", noteMeta.UID), slog.Int64("uid", noteMeta.NoteID))
+	log := s.log.With(slog.String("op", op), slog.Int64("uid", UID), slog.Int64("uid", NID))
 	log.Info("attempting to Get note")
 
-	note, err := s.Storage.GetNote(ctx, noteMeta.UID, noteMeta.NoteID)
+	note, err := s.Storage.GetNote(ctx, UID, NID)
 	if err != nil {
 		log.Warn("ERROR:", sl.Err(err))
 		if errors.Is(err, storage.ErrNotFound) {
@@ -68,20 +71,16 @@ func (s *ServiceNotes) GetNote(ctx context.Context, noteMeta *notes.NoteMeta) (*
 		}
 		return nil, err
 	}
-	return &notes.Note{
-		Uid:     note.UID,
-		Title:   *note.Title,
-		Content: *note.Content,
-	}, nil
+	return models.ProtoFromNote(note), nil
 }
 
-func (s *ServiceNotes) UpdateNote(ctx context.Context, noteWithID *notes.NoteWithID) error {
+func (s *ServiceNotes) UpdateNote(ctx context.Context, UID, NID int64, note *notes.Note) error {
 	const op = "notessrvc.UpdateNote"
 
-	log := s.log.With(slog.String("op", op), slog.Int64("uid", noteWithID.Meta.UID), slog.Int64("uid", noteWithID.Meta.NoteID))
+	log := s.log.With(slog.String("op", op), slog.Int64("uid", UID), slog.Int64("uid", NID))
 	log.Info("attempting to Update note")
 
-	err := s.Storage.UpdateNote(ctx, models.NoteWithIDFromProto(noteWithID))
+	err := s.Storage.UpdateNote(ctx, UID, NID, models.NoteFromProto(note))
 	if err != nil {
 		log.Warn("ERROR:", sl.Err(err))
 		if errors.Is(err, storage.ErrNotFound) {
@@ -96,13 +95,13 @@ func (s *ServiceNotes) UpdateNote(ctx context.Context, noteWithID *notes.NoteWit
 	return nil
 }
 
-func (s *ServiceNotes) DeleteNote(ctx context.Context, noteMeta *notes.NoteMeta) error {
+func (s *ServiceNotes) DeleteNote(ctx context.Context, UID, NID int64) error {
 	const op = "notessrvc.DeleteNote"
 
-	log := s.log.With(slog.String("op", op), slog.Int64("uid", noteMeta.UID), slog.Int64("uid", noteMeta.NoteID))
+	log := s.log.With(slog.String("op", op), slog.Int64("uid", UID), slog.Int64("uid", NID))
 	log.Info("attempting to Delete note")
 
-	if err := s.Storage.DeleteNote(ctx, noteMeta.UID, noteMeta.NoteID); err != nil {
+	if err := s.Storage.DeleteNote(ctx, UID, NID); err != nil {
 		log.Warn("ERROR:", sl.Err(err))
 		if errors.Is(err, storage.ErrNotFound) {
 			return ErrNotFound
@@ -111,4 +110,48 @@ func (s *ServiceNotes) DeleteNote(ctx context.Context, noteMeta *notes.NoteMeta)
 	}
 
 	return nil
+}
+
+func (s *ServiceNotes) ListUserNotesID(ctx context.Context, UID int64) ([]int64, error) {
+	const op = "notessrvc.ListUserNotesID"
+
+	log := s.log.With(slog.String("op", op), slog.Int64("uid", UID))
+	log.Info("attempting to List user notes IDs note")
+
+	noteIDs, err := s.Storage.ListUserNotesID(ctx, UID)
+	if err != nil {
+		log.Warn("ERROR", sl.Err(err))
+		return nil, err
+	}
+	if len(noteIDs) == 0 {
+		return nil, ErrNotFound
+	}
+
+	return noteIDs, nil
+}
+
+func (s *ServiceNotes) ListUserNotes(ctx context.Context, UID int64, notesIDs []int64) ([]*notes.NoteListItem, error) {
+	const op = "notessrvc.ListUserNotesID"
+
+	log := s.log.With(slog.String("op", op), slog.Int64("uid", UID))
+	log.Info("attempting to List user notes note")
+
+	notesList, err := s.Storage.ListUserNotes(ctx, UID, notesIDs)
+	if err != nil {
+		log.Warn("ERROR", sl.Err(err))
+		return nil, err
+	}
+	if len(notesList) == 0 {
+		return nil, ErrNotFound
+	}
+
+	notesListRes := make([]*notes.NoteListItem, 0, len(notesList))
+	for _, note := range notesList {
+		notesListRes = append(notesListRes, &notes.NoteListItem{
+			NID:  note.NID,
+			Note: models.ProtoFromNote(note),
+		})
+	}
+
+	return notesListRes, nil
 }

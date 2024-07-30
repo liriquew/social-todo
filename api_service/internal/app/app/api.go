@@ -16,6 +16,8 @@ func New(auth auth.AuthAPI, notes notes.NotesAPI) *gin.Engine {
 	notesAPI := r.Group("/note")
 	notesAPI.Use(auth.AuthRequired)
 	{
+		notesAPI.GET("/listid", notes.ListIDs)
+		notesAPI.GET("/listnotes", notes.ListNotes)
 		notesAPI.POST("/", notes.Create)
 		notesAPI.GET("/:id", notes.Get)
 		notesAPI.PATCH("/:id", notes.Update)

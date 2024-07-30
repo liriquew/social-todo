@@ -7,7 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/liriquew/todoprotos v0.0.0-20240719214748-24e2cf538f18
+	github.com/liriquew/todoprotos v0.0.0-20240724150716-ac8e5af8f175
 	google.golang.org/grpc v1.65.0
 )
 

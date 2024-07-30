@@ -55,6 +55,10 @@ github.com/liriquew/todoprotos v0.0.0-20240718133609-88e78e8ec446 h1:a5itOlM/p+p
 github.com/liriquew/todoprotos v0.0.0-20240718133609-88e78e8ec446/go.mod h1:+smdWTGzL/fd/k71fKBrhwKAciGcia1eqyvG+eeV6sA=
 github.com/liriquew/todoprotos v0.0.0-20240719214748-24e2cf538f18 h1:Uw/AuE3waDt4mkkE6vXaXPXE1JavuZB8KQs9N98L+Xg=
 github.com/liriquew/todoprotos v0.0.0-20240719214748-24e2cf538f18/go.mod h1:+smdWTGzL/fd/k71fKBrhwKAciGcia1eqyvG+eeV6sA=
+github.com/liriquew/todoprotos v0.0.0-20240723184642-291f42fa3d67 h1:JOLyTf9JcRAp9wj8ZN5PgmlWpbb4cagjTIzr5iNP3fU=
+github.com/liriquew/todoprotos v0.0.0-20240723184642-291f42fa3d67/go.mod h1:+smdWTGzL/fd/k71fKBrhwKAciGcia1eqyvG+eeV6sA=
+github.com/liriquew/todoprotos v0.0.0-20240724150716-ac8e5af8f175 h1:KZBThIYGlup+IkEttT+Qmm+BIrBCDgjqSGvG7QTCKos=
+github.com/liriquew/todoprotos v0.0.0-20240724150716-ac8e5af8f175/go.mod h1:+smdWTGzL/fd/k71fKBrhwKAciGcia1eqyvG+eeV6sA=
 github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=
 github.com/mattn/go-colorable v0.1.13/go.mod h1:7S9/ev0klgBDR4GtXTXX8a3vIGJpMovkB8vQcUbaXHg=
 github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=

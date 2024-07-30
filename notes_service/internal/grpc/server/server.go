@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/liriquew/social-todo/notes_service/internal/grpc/notessrvc"
 	"github.com/liriquew/todoprotos/gen/go/notes"
@@ -13,10 +14,13 @@ import (
 )
 
 type NotesService interface {
-	CreateNote(context.Context, *notes.Note) (*notes.NoteMeta, error)
-	GetNote(context.Context, *notes.NoteMeta) (*notes.Note, error)
-	UpdateNote(context.Context, *notes.NoteWithID) error
-	DeleteNote(context.Context, *notes.NoteMeta) error
+	CreateNote(context.Context, int64, *notes.Note) (int64, error)
+	GetNote(context.Context, int64, int64) (*notes.Note, error)
+	UpdateNote(context.Context, int64, int64, *notes.Note) error
+	DeleteNote(context.Context, int64, int64) error
+
+	ListUserNotesID(context.Context, int64) ([]int64, error)
+	ListUserNotes(context.Context, int64, []int64) ([]*notes.NoteListItem, error)
 }
 
 type serverAPI struct {
@@ -29,28 +33,23 @@ func Register(gRPC *grpc.Server, notesService NotesService) {
 }
 
 var (
-	ErrUID          = fmt.Errorf("empty UID")
-	ErrNoteID       = fmt.Errorf("empty Note ID")
-	ErrEmptyContent = fmt.Errorf("empty content field")
-	ErrEmptyTitle   = fmt.Errorf("empty title field")
+	ErrUID           = fmt.Errorf("empty UID")
+	ErrNID           = fmt.Errorf("empty Note ID")
+	ErrEmptyContent  = fmt.Errorf("empty content field")
+	ErrEmptyTitle    = fmt.Errorf("empty title field")
+	ErrInvalidTime   = fmt.Errorf("invalid time duration")
+	ErrInvalidUpdate = fmt.Errorf("invalid update request")
+	ErrCreatedAtTS   = fmt.Errorf("createdAt timestamp mush be nil")
+
+	MinTime = time.Minute * 10
 )
 
-func (s *serverAPI) CreateNote(ctx context.Context, req *notes.Note) (*notes.NoteMeta, error) {
+func (s *serverAPI) CreateNote(ctx context.Context, req *notes.CreateNoteRequest) (*notes.NoteResponse, error) {
 	if err := validateRequest(req); err != nil {
-		if errors.Is(err, ErrUID) {
-			return nil, status.Error(codes.Internal, "miss uid from jwt token")
-		}
-		if errors.Is(err, ErrEmptyContent) {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		}
-		if errors.Is(err, ErrEmptyTitle) {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		}
-
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	noteMeta, err := s.api.CreateNote(ctx, req)
+	noteID, err := s.api.CreateNote(ctx, req.UID, req.Note)
 
 	if err != nil {
 		if errors.Is(err, notessrvc.ErrAlreadyExists) {
@@ -60,47 +59,34 @@ func (s *serverAPI) CreateNote(ctx context.Context, req *notes.Note) (*notes.Not
 		return nil, status.Error(codes.Internal, "internal error idk")
 	}
 
-	return noteMeta, err
+	return &notes.NoteResponse{NID: noteID}, err
 }
 
-func (s *serverAPI) GetNoteByID(ctx context.Context, req *notes.NoteMeta) (*notes.Note, error) {
+func (s *serverAPI) GetNote(ctx context.Context, req *notes.NoteIDRequest) (*notes.Note, error) {
 	if err := validateRequest(req); err != nil {
-		if errors.Is(err, ErrUID) {
-			return nil, status.Error(codes.Internal, "miss uid from jwt token")
-		}
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	note, err := s.api.GetNote(ctx, req)
+	note, err := s.api.GetNote(ctx, req.UID, req.NID)
 
-	// TODO: check err
 	if err != nil {
 		if errors.Is(err, notessrvc.ErrNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
+
 		return nil, status.Error(codes.Internal, "internal error idk")
 	}
 
 	return note, err
 }
 
-func (s *serverAPI) UpdateNoteByID(ctx context.Context, req *notes.NoteWithID) (*notes.NoteMeta, error) {
+func (s *serverAPI) UpdateNote(ctx context.Context, req *notes.UpdateNoteRequest) (*notes.NoteResponse, error) {
 	if err := validateRequest(req); err != nil {
-		if errors.Is(err, ErrUID) {
-			return nil, status.Error(codes.Internal, "miss uid from jwt token")
-		}
-		if errors.Is(err, ErrEmptyContent) {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		}
-		if errors.Is(err, ErrEmptyTitle) {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		}
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	err := s.api.UpdateNote(ctx, req)
+	err := s.api.UpdateNote(ctx, req.UID, req.NID, req.Note)
 
-	// TODO: check err
 	if err != nil {
 		if errors.Is(err, notessrvc.ErrNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())
@@ -111,63 +97,112 @@ func (s *serverAPI) UpdateNoteByID(ctx context.Context, req *notes.NoteWithID) (
 
 		return nil, status.Error(codes.Internal, "internal error idk")
 	}
-	return req.Meta, err
+	return &notes.NoteResponse{NID: req.NID}, err
 }
 
-func (s *serverAPI) DeleteNotebyID(ctx context.Context, req *notes.NoteMeta) (*notes.NoteMeta, error) {
+func (s *serverAPI) DeleteNote(ctx context.Context, req *notes.NoteIDRequest) (*notes.NoteResponse, error) {
 	fmt.Println("DELETE")
 	if err := validateRequest(req); err != nil {
-		if errors.Is(err, ErrUID) {
-			return nil, status.Error(codes.Internal, "miss uid from jwt token")
-		}
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	err := s.api.DeleteNote(ctx, req)
+	err := s.api.DeleteNote(ctx, req.UID, req.NID)
 
-	// TODO: check err
 	if err != nil {
 		// idk is this nessesary
 		if errors.Is(err, notessrvc.ErrNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
+
 		return nil, status.Error(codes.Internal, "internal error idk")
 	}
 
-	return req, err
+	return &notes.NoteResponse{NID: req.NID}, err
+}
+
+func (s *serverAPI) ListUserNotesID(ctx context.Context, req *notes.UserIDRequest) (*notes.NoteIDList, error) {
+	if req.UID <= 0 {
+		return nil, status.Error(codes.InvalidArgument, ErrUID.Error())
+	}
+
+	noteIDs, err := s.api.ListUserNotesID(ctx, req.UID)
+
+	if err != nil {
+		if errors.Is(err, notessrvc.ErrNotFound) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+
+		return nil, status.Error(codes.Internal, "internal error idk")
+	}
+
+	return &notes.NoteIDList{UID: req.UID, NoteIDs: noteIDs}, nil
+}
+
+func (s *serverAPI) ListUserNotes(ctx context.Context, req *notes.NoteIDList) (*notes.NoteList, error) {
+	if req.UID <= 0 {
+		return nil, status.Error(codes.InvalidArgument, ErrUID.Error())
+	}
+	if len(req.NoteIDs) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "empty ids list")
+	}
+
+	notesList, err := s.api.ListUserNotes(ctx, req.UID, req.NoteIDs)
+	fmt.Println(len(notesList))
+
+	for _, n := range notesList {
+		fmt.Println(n)
+	}
+
+	if err != nil {
+		if errors.Is(err, notessrvc.ErrNotFound) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+
+		return nil, status.Error(codes.Internal, "internal error idk")
+	}
+	return &notes.NoteList{Notes: notesList}, nil
 }
 
 func validateRequest(req interface{}) error {
 	switch v := req.(type) {
-	case *notes.Note:
-		if v.Uid == 0 {
+	case *notes.CreateNoteRequest:
+		if v.Note.CreatedAt != nil {
+			return ErrCreatedAtTS
+		}
+		if v.UID <= 0 {
 			return ErrUID
 		}
-		if v.Content == "" {
+		if v.Note.Content == "" {
 			return ErrEmptyContent
 		}
-		if v.Title == "" {
+		if v.Note.Title == "" {
 			return ErrEmptyTitle
 		}
-	case *notes.NoteMeta:
-		if v.NoteID == 0 {
-			return ErrNoteID
+		if v.Note.Duration.AsDuration() < MinTime {
+			return ErrInvalidTime
 		}
-		if v.UID == 0 {
+	case *notes.NoteIDRequest:
+		if v.NID <= 0 {
+			return ErrNID
+		}
+		if v.UID <= 0 {
 			return ErrUID
 		}
-	case *notes.NoteWithID:
-		if v.Meta.NoteID == 0 {
-			return ErrNoteID
+	case *notes.UpdateNoteRequest:
+		if v.Note.CreatedAt != nil {
+			return ErrCreatedAtTS
 		}
-		if v.Meta.UID == 0 {
+		if v.NID <= 0 {
+			return ErrNID
+		}
+		if v.UID <= 0 {
 			return ErrUID
 		}
-		if v.Content == "" {
-			return ErrEmptyContent
+		if v.Note.Content == "" && v.Note.Title == "" && v.Note.Duration.AsDuration() < MinTime {
+			return ErrInvalidUpdate
 		}
-		if v.Title == "" {
-			return ErrEmptyTitle
+		if v.Note.Duration.AsDuration() != 0 && v.Note.Duration.AsDuration() < MinTime {
+			return ErrInvalidTime
 		}
 	}
 	return nil
