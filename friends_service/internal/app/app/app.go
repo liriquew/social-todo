@@ -7,10 +7,9 @@ import (
 	"net"
 	"time"
 
-	notesgrpc "github.com/liriquew/social-todo/notes_service/internal/grpc/server"
-
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
+	friends_grpc "github.com/liriquew/social-todo/friends_service/internal/grpc/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/keepalive"
@@ -26,7 +25,7 @@ type App struct {
 // New creates new gRPC server app.
 func New(
 	log *slog.Logger,
-	notesService notesgrpc.NotesService,
+	friendsService friends_grpc.FriendsService,
 	port int,
 ) *App {
 	loggingOpts := []logging.Option{
@@ -54,7 +53,7 @@ func New(
 			logging.UnaryServerInterceptor(InterceptorLogger(log), loggingOpts...),
 		))
 
-	notesgrpc.Register(gRPCServer, notesService)
+	friends_grpc.Register(gRPCServer, friendsService)
 
 	return &App{
 		log:        log,

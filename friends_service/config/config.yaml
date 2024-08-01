@@ -1,0 +1,6 @@
+port: 4043
+neo4j:
+  username: neo4j
+  password: NEOPASSFORIINRANGE10
+  port: 7687
+  db_name: neo4j
