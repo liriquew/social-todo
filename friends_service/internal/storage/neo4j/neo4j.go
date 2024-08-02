@@ -28,6 +28,11 @@ func New(config config.Neo4jConfig) (*Storage, error) {
 	return &Storage{driver: neoDriver, dbName: config.DBName}, nil
 }
 
+func (s *Storage) Close() error {
+	c := context.Background()
+	return s.driver.Close(c)
+}
+
 func (s *Storage) AddFriend(ctx context.Context, UID, friendID int64) error {
 	_, err := neo4j.ExecuteQuery(ctx, s.driver, `
 		MERGE (u1:User {id: $UID}) 
@@ -40,8 +45,6 @@ func (s *Storage) AddFriend(ctx context.Context, UID, friendID int64) error {
 		neo4j.ExecuteQueryWithDatabase("neo4j"))
 
 	if err != nil {
-		// TODO: check err
-
 		return err
 	}
 	return nil
@@ -59,8 +62,6 @@ func (s *Storage) RemoveFriend(ctx context.Context, UID, friendID int64) error {
 		neo4j.ExecuteQueryWithDatabase("neo4j"))
 
 	if err != nil {
-		// TODO: check err
-
 		return err
 	}
 	return nil
@@ -77,8 +78,6 @@ func (s *Storage) ListFriends(ctx context.Context, UID int64) ([]int64, error) {
 		neo4j.ExecuteQueryWithDatabase("neo4j"))
 
 	if err != nil {
-		// TODO: check err
-
 		return nil, err
 	}
 

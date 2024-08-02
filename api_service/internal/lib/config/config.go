@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	Port       string        `yaml:"port" env-default:"4040"`
-	AuthConfig ServiceConfig `yaml:"auth_client" env-required:"true"`
-	NoteConfig ServiceConfig `yaml:"note_client" env-required:"true"`
+	Port          string        `yaml:"port" env-default:"4040"`
+	AuthConfig    ServiceConfig `yaml:"auth_client" env-required:"true"`
+	NoteConfig    ServiceConfig `yaml:"note_client" env-required:"true"`
+	FriendsConfig ServiceConfig `yaml:"friends_client" env-required:"true"`
 }
 
 type ServiceConfig struct {

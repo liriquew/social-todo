@@ -14,7 +14,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/lib/pq v1.10.9
-	github.com/liriquew/todoprotos v0.0.0-20240724150716-ac8e5af8f175
+	github.com/liriquew/todoprotos v0.0.0-20240802221253-a78abb5294d7
 	github.com/stretchr/testify v1.8.4
 	google.golang.org/protobuf v1.34.2
 )

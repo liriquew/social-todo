@@ -14,7 +14,7 @@ services:
     restart: unless-stopped
 
   neo4j:
-    container_name: neo4j
+    container_name: social_neo4j
     image: neo4j:latest
     ports:
       - 7474:7474
@@ -24,7 +24,6 @@ services:
       - NEO4J_apoc_export_file_enabled=true
       - NEO4J_apoc_import_file_enabled=true
       - NEO4J_apoc_import_file_use__neo4j__config=true
-      - NEO4J_PLUGINS=["apoc"]
     volumes:
       - ./neo4j_db/data:/data
       - ./neo4j_db/logs:/logs

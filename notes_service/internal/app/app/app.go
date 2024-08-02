@@ -21,6 +21,7 @@ type App struct {
 	log        *slog.Logger
 	gRPCServer *grpc.Server
 	port       int
+	closers    []func() error
 }
 
 // New creates new gRPC server app.
@@ -94,6 +95,10 @@ func (a *App) Run() error {
 	}
 
 	return nil
+}
+
+func (a *App) AddCloser(c func() error) {
+	a.closers = append(a.closers, c)
 }
 
 // Stop stops gRPC server.

@@ -32,6 +32,6 @@ func main() {
 
 	<-stop
 
-	application.GRPCServer.Stop()
+	application.Stop()
 	log.Info("Gracefully stopped")
 }

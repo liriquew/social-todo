@@ -189,3 +189,32 @@ func (c *Client) ListUserNotes(ctx context.Context, UID int64, NIDs []int64) ([]
 
 	return notes, nil
 }
+
+func (c *Client) ListUsersNotes(ctx context.Context, UIDs []int64, offset, limit int64) ([]*models.Note, error) {
+	const op = "notes_grpc.ListUserNotes"
+
+	resp, err := c.api.ListUsersNotes(ctx, &notes.UsersNotesRequest{
+		UIDs:   UIDs,
+		Offset: offset,
+		Limit:  limit,
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, ErrNotFound
+			}
+		}
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	notes := make([]*models.Note, 0, len(resp.Notes))
+	for _, note := range resp.Notes {
+		n := models.NoteFromProto(note.Note)
+		n.UID = note.UID
+		n.NID = note.NID
+		notes = append(notes, n)
+	}
+
+	return notes, nil
+}

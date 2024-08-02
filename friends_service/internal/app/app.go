@@ -1,8 +1,10 @@
 package app
 
 import (
+	"fmt"
 	"log/slog"
 
+	"github.com/liriquew/social-todo/api_service/pkg/logger/sl"
 	grpcapp "github.com/liriquew/social-todo/friends_service/internal/app/app"
 	friendssrvc "github.com/liriquew/social-todo/friends_service/internal/grpc/friendsservice"
 	"github.com/liriquew/social-todo/friends_service/internal/lib/config"
@@ -11,6 +13,8 @@ import (
 
 type App struct {
 	GRPCServer *grpcapp.App
+	closers    []func() error
+	log        *slog.Logger
 }
 
 func New(log *slog.Logger, cfg config.Config) *App {
@@ -22,5 +26,21 @@ func New(log *slog.Logger, cfg config.Config) *App {
 	friends_service := friendssrvc.New(log, storage)
 
 	app := grpcapp.New(log, friends_service, cfg.Port)
-	return &App{GRPCServer: app}
+
+	mainApp := &App{GRPCServer: app, log: log}
+	mainApp.closers = append(mainApp.closers, storage.Close)
+	return mainApp
+}
+
+func (a *App) Stop() {
+
+	const op = "app.App.Stop"
+
+	for _, c := range a.closers {
+		if err := c(); err != nil {
+			a.log.Warn("ERROR", sl.Err(fmt.Errorf("%s: %w", op, err)))
+		}
+	}
+
+	a.GRPCServer.Stop()
 }

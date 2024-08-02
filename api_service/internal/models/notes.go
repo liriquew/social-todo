@@ -8,6 +8,7 @@ import (
 )
 
 type Note struct {
+	UID       int64     `json:"uid,omitempty"`
 	NID       int64     `json:"id,omitempty"`
 	Title     string    `json:"title,omitempty"`
 	Content   string    `json:"content,omitempty"`

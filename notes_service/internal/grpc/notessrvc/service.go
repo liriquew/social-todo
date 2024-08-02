@@ -25,6 +25,8 @@ type StorageProvider interface {
 
 	ListUserNotesID(context.Context, int64) ([]int64, error)
 	ListUserNotes(context.Context, int64, []int64) ([]*models.Note, error)
+
+	ListUsersNotes(context.Context, []int64, int64, int64) ([]*models.Note, error)
 }
 
 var (
@@ -149,6 +151,34 @@ func (s *ServiceNotes) ListUserNotes(ctx context.Context, UID int64, notesIDs []
 	for _, note := range notesList {
 		notesListRes = append(notesListRes, &notes.NoteListItem{
 			NID:  note.NID,
+			Note: models.ProtoFromNote(note),
+		})
+	}
+
+	return notesListRes, nil
+}
+
+func (s *ServiceNotes) ListUsersNotes(ctx context.Context, UIDs []int64, offset, limit int64) ([]*notes.UsersNotesListItem, error) {
+	const op = "notessrvc.ListUsersNotes"
+
+	log := s.log.With(slog.String("op", op))
+	log.Info("attempting to list users notes", slog.Any("UIDs", UIDs), slog.Int64("OFFSET", offset), slog.Int64("LIMIT", limit))
+	notesList, err := s.Storage.ListUsersNotes(ctx, UIDs, offset, limit)
+	if err != nil {
+		log.Warn("ERROR", sl.Err(err))
+		return nil, err
+	}
+
+	if len(notesList) == 0 {
+		log.Warn("NOT FOUND")
+		return nil, ErrNotFound
+	}
+
+	notesListRes := make([]*notes.UsersNotesListItem, 0, len(notesList))
+	for _, note := range notesList {
+		notesListRes = append(notesListRes, &notes.UsersNotesListItem{
+			NID:  note.NID,
+			UID:  note.UID,
 			Note: models.ProtoFromNote(note),
 		})
 	}

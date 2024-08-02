@@ -37,8 +37,6 @@ func (s *serverAPI) AddFriend(ctx context.Context, req *friends.FriendRequest) (
 
 	err := s.api.AddFriend(ctx, req.UID, req.FriendID)
 	if err != nil {
-		// TODO: check err
-
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -52,8 +50,6 @@ func (s *serverAPI) RemoveFriend(ctx context.Context, req *friends.FriendRequest
 
 	err := s.api.RemoveFriend(ctx, req.UID, req.FriendID)
 	if err != nil {
-		// TODO: check err
-
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -67,8 +63,6 @@ func (s *serverAPI) ListFriends(ctx context.Context, req *friends.ListFriendRequ
 
 	friendIDs, err := s.api.ListUserFriends(ctx, req.UID)
 	if err != nil {
-		// TODO: check err
-
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 

@@ -9,11 +9,12 @@ import (
 )
 
 type Note struct {
+	UID         int64     `db:"owner_id"`
 	NID         int64     `db:"id"`
 	Title       string    `db:"title"`
 	Content     string    `db:"note"`
 	CreatedTime time.Time `db:"created_at"`
-	Duration    int64     `db:"duration"`
+	Duration    int64     `db:"duration"` // время в минутах
 }
 
 func NoteFromProto(n *notes.Note) *Note {

@@ -21,6 +21,8 @@ type NotesService interface {
 
 	ListUserNotesID(context.Context, int64) ([]int64, error)
 	ListUserNotes(context.Context, int64, []int64) ([]*notes.NoteListItem, error)
+
+	ListUsersNotes(context.Context, []int64, int64, int64) ([]*notes.UsersNotesListItem, error)
 }
 
 type serverAPI struct {
@@ -40,6 +42,9 @@ var (
 	ErrInvalidTime   = fmt.Errorf("invalid time duration")
 	ErrInvalidUpdate = fmt.Errorf("invalid update request")
 	ErrCreatedAtTS   = fmt.Errorf("createdAt timestamp mush be nil")
+	ErrEmptyUIDList  = fmt.Errorf("empty UID list")
+	ErrBadLimit      = fmt.Errorf("bad limit value")
+	ErrBadOffset     = fmt.Errorf("bad offset value")
 
 	MinTime = time.Minute * 10
 )
@@ -163,6 +168,20 @@ func (s *serverAPI) ListUserNotes(ctx context.Context, req *notes.NoteIDList) (*
 	return &notes.NoteList{Notes: notesList}, nil
 }
 
+func (s *serverAPI) ListUsersNotes(ctx context.Context, req *notes.UsersNotesRequest) (*notes.UsersNotesList, error) {
+
+	notesList, err := s.api.ListUsersNotes(ctx, req.UIDs, req.Offset, req.Limit)
+	if err != nil {
+		if errors.Is(err, notessrvc.ErrNotFound) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+
+		return nil, status.Error(codes.Internal, "internal err idk")
+	}
+
+	return &notes.UsersNotesList{Notes: notesList}, nil
+}
+
 func validateRequest(req interface{}) error {
 	switch v := req.(type) {
 	case *notes.CreateNoteRequest:
@@ -203,6 +222,21 @@ func validateRequest(req interface{}) error {
 		}
 		if v.Note.Duration.AsDuration() != 0 && v.Note.Duration.AsDuration() < MinTime {
 			return ErrInvalidTime
+		}
+	case *notes.UsersNotesRequest:
+		if v.Limit <= 0 {
+			return ErrBadLimit
+		}
+		if v.Offset <= 0 {
+			return ErrBadOffset
+		}
+		if len(v.UIDs) == 0 {
+			return ErrEmptyUIDList
+		}
+		for _, UID := range v.UIDs {
+			if UID <= 0 {
+				return ErrUID
+			}
 		}
 	}
 	return nil

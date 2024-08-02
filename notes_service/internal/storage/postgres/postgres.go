@@ -168,3 +168,27 @@ func (s *Storage) ListUserNotes(ctx context.Context, UID int64, NIDs []int64) ([
 
 	return notes, err
 }
+
+func (s *Storage) ListUsersNotes(ctx context.Context, UIDs []int64, offset, limit int64) ([]*models.Note, error) {
+	const op = "postgres.ListUsersNotes"
+
+	query, args, err := sqlx.In(`
+		SELECT id, owner_id, title, note, duration, created_at 
+		FROM notes 
+		WHERE owner_id IN(?)
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`, UIDs, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	query = s.db.Rebind(query)
+
+	var notes []*models.Note
+	err = s.db.SelectContext(ctx, &notes, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return notes, nil
+}

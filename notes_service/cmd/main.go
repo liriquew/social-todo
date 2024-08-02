@@ -29,7 +29,7 @@ func main() {
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
 	<-stop
-	application.GRPCServer.Stop()
+	application.Stop()
 
 	log.Info("Gracefully stopped")
 }

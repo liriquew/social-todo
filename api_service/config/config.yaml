@@ -7,3 +7,7 @@ note_client:
   port: localhost:4042
   timeout: 1s
   retries: 1
+friends_client:
+  port: localhost:4043
+  timeout: 1s
+  retries: 1
